@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Campeonatos PE</title>
+    <title>Gerador de Campeonatos & Bolão PE</title>
     <style>
         :root {
             --azul-pe: #002B7F;
@@ -227,13 +227,14 @@
 <body>
 
     <header>
-        <h1>Gerador de Campeonatos</h1>
-        <div class="badge-pe">🏆 Sistema de Ligas & Confrontos Completos 🌟</div>
+        <h1>Gerador de Campeonatos & Bolão</h1>
+        <div class="badge-pe">🏆 Ligas & Gestão Centralizada do Bolão da Copa 🌟</div>
     </header>
 
     <nav class="nav-tabs">
         <button class="tab-button active" onclick="alternarAba('cadastro')">⚙️ Painel de Controle</button>
         <button class="tab-button" onclick="alternarAba('tabelas')">📊 Tabelas e Confrontos</button>
+        <button class="tab-button" onclick="alternarAba('bolao')">🎲 Bolão da Copa</button>
     </nav>
 
     <div id="aba-cadastro" class="tab-content active">
@@ -244,7 +245,7 @@
                 <input type="text" id="login-usuario" placeholder="Digite o usuário" required>
                 <label>Senha:</label>
                 <input type="password" id="login-senha" placeholder="Letras e números" required>
-                <button type="submit">Entrar no Painel</button>
+                <button type="submit">Entrar no Panel</button>
             </form>
         </div>
 
@@ -256,13 +257,13 @@
                 <button type="submit">Salvar Modalidade</button>
             </form>
 
-            <h2>2. Cadastrar Time</h2>
+            <h2>2. Cadastrar Time / Apostador</h2>
             <form id="form-time">
-                <label>Nome do Time:</label>
-                <input type="text" id="nome-time" placeholder="Ex: Sport, Santa Cruz" required>
+                <label>Nome do Time / Participante:</label>
+                <input type="text" id="nome-time" placeholder="Ex: Sport, Rodrigo Silva" required>
                 <label>Modalidades (Segure Ctrl):</label>
                 <select id="select-modalidades-time" multiple required></select>
-                <button type="submit">Salvar Time</button>
+                <button type="submit">Salvar Cadastro</button>
             </form>
         </div>
 
@@ -271,36 +272,70 @@
             <form id="form-torneio">
                 <label>Nome do Torneio:</label>
                 <input type="text" id="nome-torneio" placeholder="Ex: Copa Pernambuco" required>
-                
                 <label>Modalidade de Disputa:</label>
                 <select id="select-modalidade-torneio" onchange="atualizarCheckboxTimesPorModalidade()" required></select>
-                
                 <label>Selecione os Times Participantes:</label>
                 <div id="lista-checkbox-times" class="selecao-times-box">
-                    <span style="color:#777; font-size:0.9rem;">Escolha uma modalidade para listar os times...</span>
+                    <span style="color:#777; font-size:0.9rem;">Escolha uma modalidade para listar...</span>
                 </div>
-
                 <label>Pontos por Vitória:</label>
                 <input type="number" id="pontos-vitoria" value="3" required>
                 <label>Pontos por Empate:</label>
                 <input type="number" id="pontos-empate" value="1" required>
-                
                 <label>Formato:</label>
                 <select id="formato-torneio">
                     <option value="liga">Pontos Corridos (Liga)</option>
-                    <option value="eliminatorio">Mata-Mata (Eliminatório)</option>
                 </select>
-                
-                <button type="submit">Criar Torneio com Selecionados</button>
+                <button type="submit">Criar Torneio</button>
             </form>
+        </div>
+
+        <div class="card private-area">
+            <h2>🇧🇷 Gestão: Jogos & Resultados Oficiais</h2>
+            <form id="form-jogo-copa">
+                <label>Adversário do Brasil:</label>
+                <input type="text" id="adversario-copa" placeholder="Ex: Sérvia, Suíça" required>
+                <button type="submit">Cadastrar Jogo da Copa</button>
+            </form>
+            <h3 style="margin-top: 15px; color: var(--azul-pe);">Placares Reais da Copa</h3>
+            <div id="admin-lista-jogos-copa"></div>
+            <button style="margin-top: 15px; background-color: var(--verde-pe);" onclick="calcularPontuacaoBolao()">🔄 Recalcular Ranking do Bolão</button>
+        </div>
+
+        <div class="card private-area">
+            <h2>🎲 Admin: Lançar Palpite do Apostador</h2>
+            <form id="form-palpite-admin">
+                <label>Selecione o Apostador (Apenas cadastrados):</label>
+                <select id="select-time-palpite-admin" required>
+                    <option value="">Aguardando carregamento de times...</option>
+                </select>
+
+                <label>Selecione o Jogo:</label>
+                <select id="select-jogo-palpite-admin" required>
+                    <option value="">Escolha o confronto...</option>
+                </select>
+
+                <div style="display: flex; justify-content: space-around; align-items: center; background: #f0f4f8; padding: 12px; border-radius: 8px; margin: 10px 0;">
+                    <div style="text-align: center;">
+                        <span style="font-weight: bold; display:block;">🇧🇷 Brasil</span>
+                        <input type="number" id="adm-palpite-brasil" min="0" style="width: 50px; text-align: center;" required>
+                    </div>
+                    <span style="font-weight: bold;">X</span>
+                    <div style="text-align: center;">
+                        <span id="label-oponente-admin" style="font-weight: bold; display:block;">Adversário</span>
+                        <input type="number" id="adm-palpite-adve" min="0" style="width: 50px; text-align: center;" required>
+                    </div>
+                </div>
+                <button type="submit">Salvar Palpite</button>
+            </form>
+
+            <h3 style="margin-top:20px; color:var(--azul-pe);">📝 Gerenciar/Excluir Palpites</h3>
+            <ul id="admin-lista-edicao-palpites" class="lista-gerenciamento"></ul>
         </div>
 
         <div class="card private-area">
             <h2>👥 Gerenciar Times Cadastrados</h2>
             <ul id="lista-edit-times" class="lista-gerenciamento"></ul>
-        </div>
-
-        <div class="card private-area">
             <h2>✏️ Configuração Rápida de Torneios</h2>
             <ul id="lista-edit-torneios" class="lista-gerenciamento"></ul>
             <button class="btn-logout" onclick="fazerLogout()">🔒 Sair do Painel</button>
@@ -315,16 +350,9 @@
         </div>
 
         <div class="card">
-            <h2>📊 Tabela de Classificação (Pontos Editáveis)</h2>
+            <h2>📊 Tabela de Classificação</h2>
             <table>
-                <thead>
-                    <tr>
-                        <th>Posição</th>
-                        <th>Time</th>
-                        <th>Pontos</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Posição</th><th>Time</th><th>Pontos</th><th>Ações</th></tr></thead>
                 <tbody id="tabela-torneio-classificacao"></tbody>
             </table>
         </div>
@@ -335,18 +363,33 @@
         </div>
 
         <div class="card full-width">
-            <h2>🌍 Ranking Geral do Sistema (Soma total - Pontos Editáveis)</h2>
+            <h2>🌍 Ranking Geral do Sistema</h2>
             <table>
-                <thead>
-                    <tr>
-                        <th>Posição</th>
-                        <th>Time</th>
-                        <th>Modalidades</th>
-                        <th>Pontuação Acumulada</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Posição</th><th>Time</th><th>Modalidades</th><th>Pontuação Acumulada</th><th>Ações</th></tr></thead>
                 <tbody id="tabela-geral"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="aba-bolao" class="tab-content">
+        <div class="card">
+            <h2>🏅 Ranking Geral do Bolão</h2>
+            <table>
+                <thead><tr><th>Posição</th><th>Apostador</th><th>Pontuação</th></tr></thead>
+                <tbody id="tabela-ranking-bolao"></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>📅 Resultados Oficiais & Histórico da Copa</h2>
+            <div id="lista-publica-jogos-copa">Nenhum jogo cadastrado.</div>
+        </div>
+
+        <div class="card full-width">
+            <h2>📊 Mural Geral de Palpites Computados</h2>
+            <table>
+                <thead><tr><th>Apostador</th><th>Confronto</th><th>Palpite Lido</th></tr></thead>
+                <tbody id="tabela-publica-todos-palpites"></tbody>
             </table>
         </div>
     </div>
@@ -356,7 +399,7 @@
     </footer>
 
     <script>
-       // CONFIGURAÇÃO DO FIREBASE (SUAS CREDENCIAIS REAIS)
+        // CONFIGURAÇÃO DO FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyDIij-LI7JRAYl8KrqFR_xLsFjGQoHaYu0",
             authDomain: "sindicato-73573.firebaseapp.com",
@@ -366,23 +409,27 @@
             appId: "1:957508942723:web:25fd03f138c4b6d0c254b6"
         };
 
-        // Inicializando Firebase e Firestore
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let banco = { modalidades: [], times: [], torneios: [] };
+        let banco = { modalidades: [], times: [], torneios: [], jogosCopa: [], palpitesCopa: [], rankingBolao: [] };
         const ADMIN_USER = "digodot";
         const ADMIN_PASS = "pe2026rec";
 
         function alternarAba(aba) {
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
             if(aba === 'cadastro') {
                 document.querySelectorAll('.tab-button')[0].classList.add('active');
                 document.getElementById('aba-cadastro').classList.add('active');
-            } else {
+            } else if(aba === 'tabelas') {
                 document.querySelectorAll('.tab-button')[1].classList.add('active');
                 document.getElementById('aba-tabelas').classList.add('active');
+            } else if(aba === 'bolao') {
+                document.querySelectorAll('.tab-button')[2].classList.add('active');
+                document.getElementById('aba-bolao').classList.add('active');
+                renderizarAbasBolaoPublico();
             }
         }
 
@@ -397,22 +444,13 @@
 
         function verificarStatusLogin() {
             const logado = sessionStorage.getItem('admin_autenticado') === 'true';
-            const loginCard = document.getElementById('card-login');
-            const paineisPrivados = document.querySelectorAll('.private-area');
-            if (logado) {
-                loginCard.style.display = 'none';
-                paineisPrivados.forEach(p => p.style.display = 'block');
-                document.getElementById('aba-cadastro').style.gridTemplateColumns = '1fr 1fr';
-            } else {
-                loginCard.style.display = 'block';
-                paineisPrivados.forEach(p => p.style.display = 'none');
-                document.getElementById('aba-cadastro').style.gridTemplateColumns = '1fr';
-            }
+            document.getElementById('card-login').style.display = logado ? 'none' : 'block';
+            document.querySelectorAll('.private-area').forEach(p => p.style.display = logado ? 'block' : 'none');
+            document.getElementById('aba-cadastro').style.gridTemplateColumns = logado ? '1fr 1fr' : '1fr';
         }
 
         function fazerLogout() { sessionStorage.removeItem('admin_autenticado'); verificarStatusLogin(); }
 
-        // AJUSTE FIRESTORE: Escutando alterações em tempo real do documento 'dados' da coleção 'campeonatos'
         function carregarDadosDoServidor() {
             db.collection('campeonatos').doc('dados').onSnapshot((doc) => {
                 if (doc.exists) {
@@ -420,36 +458,24 @@
                     banco = {
                         modalidades: dados.modalidades || [],
                         times: dados.times || [],
-                        torneios: dados.torneios || []
+                        torneios: dados.torneios || [],
+                        jogosCopa: dados.jogosCopa || [],
+                        palpitesCopa: dados.palpitesCopa || [],
+                        rankingBolao: dados.rankingBolao || []
                     };
-                } else {
-                    banco = { modalidades: [], times: [], torneios: [] };
                 }
                 atualizarInterface();
+                renderizarAdminJogosCopa();
+                renderizarAdminFormPalpites();
+                renderizarAbasBolaoPublico();
             });
         }
 
-        // AJUSTE FIRESTORE: Salvando no documento do Firestore
         function salvarNoServidor() {
-            db.collection('campeonatos').doc('dados').set(banco)
-            .catch(err => console.error("Erro ao salvar no Firestore: ", err));
+            db.collection('campeonatos').doc('dados').set(banco).catch(err => console.error(err));
         }
 
-        window.atualizarCheckboxTimesPorModalidade = function() {
-            const modSelecionada = document.getElementById('select-modalidade-torneio').value;
-            const container = document.getElementById('lista-checkbox-times');
-            container.innerHTML = '';
-            if(!modSelecionada) { container.innerHTML = '<span>Escolha uma modalidade...</span>'; return; }
-
-            let timesFiltrados = banco.times.filter(t => t.modalidades && t.modalidades.includes(modSelecionada));
-            if(timesFiltrados.length === 0) { container.innerHTML = '<span>Nenhum time cadastrado!</span>'; return; }
-
-            timesFiltrados.forEach(time => {
-                container.innerHTML += `<div class="checkbox-container"><input type="checkbox" name="times-torneio-escolhidos" value="${time.nome}" id="chk-${time.nome}" checked><label for="chk-${time.nome}">${time.nome}</label></div>`;
-            });
-        };
-
-        // --- CADASTROS ---
+        // CADASTROS EXTRAÍDOS
         document.getElementById('form-modalidade').addEventListener('submit', (e) => {
             e.preventDefault();
             const nome = document.getElementById('nome-modalidade').value.trim();
@@ -460,12 +486,10 @@
             e.preventDefault();
             const nome = document.getElementById('nome-time').value.trim();
             const mods = Array.from(document.getElementById('select-modalidades-time').selectedOptions).map(o => o.value);
-            let pontosPorModalidade = {};
-            mods.forEach(m => { pontosPorModalidade[m] = 0; });
+            let pontosPorModalidade = {}; mods.forEach(m => { pontosPorModalidade[m] = 0; });
             banco.times.push({ nome, modalidades: mods, pontosModalidade: pontosPorModalidade, pontosManuaisGerais: 0 });
             salvarNoServidor();
             document.getElementById('form-time').reset();
-            atualizarCheckboxTimesPorModalidade();
         });
 
         document.getElementById('form-torneio').addEventListener('submit', (e) => {
@@ -474,12 +498,8 @@
             const modalidade = document.getElementById('select-modalidade-torneio').value;
             const pontosVitoria = parseInt(document.getElementById('pontos-vitoria').value);
             const pontosEmpate = parseInt(document.getElementById('pontos-empate').value);
-            const formato = document.getElementById('formato-torneio').value;
-
             const checkboxes = document.querySelectorAll('input[name="times-torneio-escolhidos"]:checked');
             const timesSelecionados = Array.from(checkboxes).map(chk => chk.value);
-
-            if(timesSelecionados.length < 2) { alert("Selecione pelo menos 2 times!"); return; }
 
             let jogos = [];
             for(let i=0; i < timesSelecionados.length; i++) {
@@ -487,178 +507,240 @@
                     jogos.push({ timeA: timesSelecionados[i], timeB: timesSelecionados[j], placarA: null, placarB: null, realizado: false });
                 }
             }
-
-            banco.torneios.push({ nome, modalidade, pontosVitoria, pontosEmpate, formato, timesParticipantes: timesSelecionados, confrontos: jogos });
+            banco.torneios.push({ nome, modalidade, pontosVitoria, pontosEmpate, timesParticipantes: timesSelecionados, confrontos: jogos });
             salvarNoServidor();
             document.getElementById('form-torneio').reset();
-            document.getElementById('lista-checkbox-times').innerHTML = '<span>Escolha uma modalidade...</span>';
-            alert(`Torneio criado!`);
         });
 
-        // --- MANIPULAÇÃO MANUAL DE PONTOS ---
-        window.editarPontoManualTorneio = function(nomeTime, modalidade) {
-            if(sessionStorage.getItem('admin_autenticado') !== 'true') { alert("Acesso restrito!"); return; }
-            let time = banco.times.find(t => t.nome === nomeTime);
-            if(time) {
-                if(!time.pontosModalidade) time.pontosModalidade = {};
-                const ptsAtuais = time.pontosModalidade[modalidade] || 0;
-                const novoPonto = prompt(`Ajustar manualmente os pontos de "${nomeTime}" na modalidade "${modalidade}":`, ptsAtuais);
-                if(novoPonto !== null && !isNaN(novoPonto)) {
-                    time.pontosModalidade[modalidade] = parseInt(novoPonto);
-                    salvarNoServidor();
-                }
-            }
+        // JOGOS DA COPA
+        document.getElementById('form-jogo-copa').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const adv = document.getElementById('adversario-copa').value.trim();
+            if(!banco.jogosCopa) banco.jogosCopa = [];
+            banco.jogosCopa.push({ id: Date.now(), adversario: adv, placarBrasil: null, placarAdversario: null, realizado: false });
+            salvarNoServidor();
+            document.getElementById('form-jogo-copa').reset();
+        });
+
+        function renderizarAdminJogosCopa() {
+            const container = document.getElementById('admin-lista-jogos-copa');
+            if(!container) return; container.innerHTML = '';
+            if(!banco.jogosCopa || banco.jogosCopa.length === 0) { container.innerHTML = '<small>Nenhum jogo.</small>'; return; }
+
+            banco.jogosCopa.forEach((jogo, idx) => {
+                container.innerHTML += `
+                    <div class="confronto-item">
+                        <span>🇧🇷 Brasil x ${jogo.adversario}</span>
+                        <div class="placar-inputs">
+                            <input type="number" id="adm-gols-b-${idx}" value="${jogo.placarBrasil!==null?jogo.placarBrasil:''}">
+                            <input type="number" id="adm-gols-a-${idx}" value="${jogo.placarAdversario!==null?jogo.placarAdversario:''}">
+                            <button class="btn-small btn-score" onclick="salvarResultadoRealCopa(${idx})">✔</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        window.resultadoRealCopa = function(idx) { salvarResultadoRealCopa(idx); };
+        window.salvarResultadoRealCopa = function(idx) {
+            const gB = document.getElementById(`adm-gols-b-${idx}`).value;
+            const gA = document.getElementById(`adm-gols-a-${idx}`).value;
+            if(gB === '' || gA === '') return;
+            banco.jogosCopa[idx].placarBrasil = parseInt(gB);
+            banco.jogosCopa[idx].placarAdversario = parseInt(gA);
+            banco.jogosCopa[idx].realizado = true;
+            salvarNoServidor();
         };
 
-        window.editarPontoManualGeral = function(indexTime) {
-            if(sessionStorage.getItem('admin_autenticado') !== 'true') { alert("Acesso restrito!"); return; }
-            let time = banco.times[indexTime];
-            if(time) {
-                if(time.pontosManuaisGerais === undefined) time.pontosManuaisGerais = 0;
-                const ajuste = prompt(`Ajuste de bônus/penalidade manual no Ranking Geral para "${time.nome}" (Pode usar números negativos para tirar pontos):`, time.pontosManuaisGerais);
-                if(ajuste !== null && !isNaN(ajuste)) {
-                    time.pontosManuaisGerais = parseInt(ajuste);
-                    salvarNoServidor();
-                }
-            }
-        };
+        // ADMIN LANÇAR, EDITAR E EXCLUIR PALPITES
+        function renderizarAdminFormPalpites() {
+            const selectTimes = document.getElementById('select-time-palpite-admin');
+            const selectJogos = document.getElementById('select-jogo-palpite-admin');
+            const listaEdicao = document.getElementById('admin-lista-edicao-palpites');
+            if(!selectTimes) return;
 
-        // --- SALVAR PLACAR DO CONFRONTO E CALCULAR PONTOS ---
-        window.salvarPlacarJogo = function(idxTorneio, idxJogo) {
-            if(sessionStorage.getItem('admin_autenticado') !== 'true') { alert("Acesso restrito ao Admin!"); return; }
+            // Alimenta Select de Times (Apostadores Cadastrados)
+            selectTimes.innerHTML = '<option value="">Selecione o participante...</option>';
+            banco.times.forEach(t => {
+                selectTimes.innerHTML += `<option value="${t.nome}">${t.nome}</option>`;
+            });
+
+            // Alimenta Select de Jogos
+            selectJogos.innerHTML = '<option value="">Selecione o jogo...</option>';
+            if(banco.jogosCopa) {
+                banco.jogosCopa.forEach(j => {
+                    selectJogos.innerHTML += `<option value="${j.id}">Brasil x ${j.adversario}</option>`;
+                });
+            }
+
+            selectJogos.onchange = function() {
+                const jogo = banco.jogosCopa.find(j => j.id == this.value);
+                document.getElementById('label-oponente-admin').innerText = jogo ? jogo.adversario : 'Adversário';
+            };
+
+            // Lista para Editar/Excluir palpites lidos
+            listaEdicao.innerHTML = '';
+            if(!banco.palpitesCopa || banco.palpitesCopa.length === 0) {
+                listaEdicao.innerHTML = '<li><small>Nenhum palpite registrado.</small></li>';
+            } else {
+                banco.palpitesCopa.forEach((p, idx) => {
+                    const jogo = banco.jogosCopa.find(j => j.id === p.jogoId);
+                    const nomeJogo = jogo ? `Brasil ${p.golsBrasil} x ${p.golsAdversario} ${jogo.adversario}` : 'Jogo Excluído';
+                    listaEdicao.innerHTML += `
+                        <li>
+                            <div class="info-time"><strong>${p.nome}</strong><small>${nomeJogo}</small></div>
+                            <div>
+                                <button class="btn-small btn-edit" onclick="editarPalpiteAdmin(${idx})">Editar</button>
+                                <button class="btn-small btn-delete" onclick="excluirPalpiteAdmin(${idx})">X</button>
+                            </div>
+                        </li>`;
+                });
+            }
+        }
+
+        document.getElementById('form-palpite-admin').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('select-time-palpite-admin').value;
+            const jogoId = parseInt(document.getElementById('select-jogo-palpite-admin').value);
+            const golsB = parseInt(document.getElementById('adm-palpite-brasil').value);
+            const golsA = parseInt(document.getElementById('adm-palpite-adve').value);
+
+            if(!banco.palpitesCopa) banco.palpitesCopa = [];
+            // Filtra duplicados antigos
+            banco.palpitesCopa = banco.palpitesCopa.filter(p => !(p.nome === nome && p.jogoId === jogoId));
+
+            banco.palpitesCopa.push({ nome, jogoId, golsBrasil: golsB, golsAdversario: golsA });
+            salvarNoServidor();
+            document.getElementById('form-palpite-admin').reset();
+            alert('Palpite computado!');
+        });
+
+        window.editarPalpiteAdmin = function(idx) {
+            const p = banco.palpitesCopa[idx];
+            const jogo = banco.jogosCopa.find(j => j.id === p.jogoId);
+            const nB = prompt(`Novo palpite de gols para o BRASIL (${p.nome}):`, p.golsBrasil);
+            const nA = prompt(`Novo palpite de gols para ${jogo ? jogo.adversario : 'Oponente'}:`, p.golsAdversario);
             
-            let torneio = banco.torneios[idxTorneio];
-            let jogo = torneio.confrontos[idxJogo];
+            if(nB !== null && nA !== null && !isNaN(nB) && !isNaN(nA)) {
+                banco.palpitesCopa[idx].golsBrasil = parseInt(nB);
+                banco.palpitesCopa[idx].golsAdversario = parseInt(nA);
+                salvarNoServidor();
+            }
+        };
 
+        window.excluirPalpiteAdmin = function(idx) {
+            if(confirm("Deseja apagar este palpite?")) {
+                banco.palpitesCopa.splice(idx, 1);
+                salvarNoServidor();
+            }
+        };
+
+        // INTERFACE DO BOLÃO PÚBLICO
+        function renderizacaoBolaoPublico() { renderizarAbasBolaoPublico(); }
+        function renderizarAbasBolaoPublico() {
+            const listaPublica = document.getElementById('lista-publica-jogos-copa');
+            const tabelaRanking = document.getElementById('tabela-ranking-bolao');
+            const tabelaMural = document.getElementById('tabela-publica-todos-palpites');
+            if(!listaPublica) return;
+
+            // Histórico oficial
+            listaPublica.innerHTML = '';
+            if(banco.jogosCopa) {
+                banco.jogosCopa.forEach(j => {
+                    listaPublica.innerHTML += `<div class="confronto-item">${j.realizado ? `<strong style="color:var(--verde-pe)">Oficial: Brasil ${j.placarBrasil} x ${j.placarAdversario} ${j.adversario}</strong>` : `<span>Agendado: Brasil x ${j.adversario}</span>`}</div>`;
+                });
+            }
+
+            // Ranking
+            tabelaRanking.innerHTML = '';
+            if(!banco.rankingBolao || banco.rankingBolao.length === 0) {
+                tabelaRanking.innerHTML = '<tr><td colspan="3">Aguardando cálculo.</td></tr>';
+            } else {
+                banco.rankingBolao.forEach((usr, i) => {
+                    tabelaRanking.innerHTML += `<tr><td>${i+1}º</td><td><strong>${usr.nome}</strong></td><td>${usr.pontos} pts</td></tr>`;
+                });
+            }
+
+            // Mural de Palpites
+            tabelaMural.innerHTML = '';
+            if(!banco.palpitesCopa || banco.palpitesCopa.length === 0) {
+                tabelaMural.innerHTML = '<tr><td colspan="3">Nenhum palpite aberto.</td></tr>';
+            } else {
+                banco.palpitesCopa.forEach(p => {
+                    const jogo = banco.jogosCopa.find(j => j.id === p.jogoId);
+                    tabelaMural.innerHTML += `<tr><td>${p.nome}</td><td>Brasil x ${jogo?jogo.adversario:'?'}</td><td><strong>${p.golsBrasil} x ${p.golsAdversario}</strong></td></tr>`;
+                });
+            }
+        }
+
+        // MOTOR DE CÁLCULO
+        window.calcularPontuacaoBolao = function() {
+            if(!banco.palpitesCopa) return;
+            let pontuacaoPontos = {};
+            banco.times.forEach(t => { pontuacaoPontos[t.nome] = 0; });
+
+            banco.palpitesCopa.forEach(palpite => {
+                const jogoReal = banco.jogosCopa.find(j => j.id === palpite.jogoId);
+                if(jogoReal && jogoReal.realizado && pontuacaoPontos[palpite.nome] !== undefined) {
+                    const resReal = Math.sign(jogoReal.placarBrasil - jogoReal.placarAdversario);
+                    const resPalpite = Math.sign(palpite.golsBrasil - palpite.golsAdversario);
+
+                    if(jogoReal.placarBrasil === palpite.golsBrasil && jogoReal.placarAdversario === palpite.golsAdversario) {
+                        pontuacaoPontos[palpite.nome] += 25;
+                    } else if(resReal === resPalpite) {
+                        pontuacaoPontos[palpite.nome] += 10;
+                    }
+                }
+            });
+
+            banco.rankingBolao = Object.keys(pontuacaoPontos).map(nome => {
+                return { nome: nome, pontos: pontuacaoPontos[nome] };
+            }).sort((a,b) => b.pontos - a.pontos);
+
+            salvarNoServidor();
+            alert('Ranking atualizado!');
+        };
+
+        // CÓDIGO DO SISTEMA ORIGINAL (MANTIDO E ADAPTADO)
+        window.atualizarCheckboxTimesPorModalidade = function() {
+            const modSelecionada = document.getElementById('select-modalidade-torneio').value;
+            const container = document.getElementById('lista-checkbox-times'); container.innerHTML = '';
+            banco.times.filter(t => t.modalidades && t.modalidades.includes(modSelecionada)).forEach(time => {
+                container.innerHTML += `<div class="checkbox-container"><input type="checkbox" name="times-torneio-escolhidos" value="${time.nome}" id="chk-${time.nome}" checked><label for="chk-${time.nome}">${time.nome}</label></div>`;
+            });
+        };
+
+        window.salvarPlacarJogo = function(idxTorneio, idxJogo) {
+            let torneio = banco.torneios[idxTorneio]; let jogo = torneio.confrontos[idxJogo];
             const valA = document.getElementById(`placarA-${idxTorneio}-${idxJogo}`).value;
             const valB = document.getElementById(`placarB-${idxTorneio}-${idxJogo}`).value;
-
-            if(valA === "" || valB === "") { alert("Por favor, digite o placar dos dois times!"); return; }
-
-            const golsA = parseInt(valA);
-            const golsB = parseInt(valB);
+            if(valA === "" || valB === "") return;
 
             let timeA = banco.times.find(t => t.nome === jogo.timeA);
             let timeB = banco.times.find(t => t.nome === jogo.timeB);
 
             if(jogo.realizado) {
-                if(jogo.placarA > jogo.placarB) {
-                    if(timeA && timeA.pontosModalidade) timeA.pontosModalidade[torneio.modalidade] -= torneio.pontosVitoria;
-                } else if(jogo.placarB > jogo.placarA) {
-                    if(timeB && timeB.pontosModalidade) timeB.pontosModalidade[torneio.modalidade] -= torneio.pontosVitoria;
-                } else {
-                    if(timeA && timeA.pontosModalidade) timeA.pontosModalidade[torneio.modalidade] -= (torneio.pontosEmpate || 0);
-                    if(timeB && timeB.pontosModalidade) timeB.pontosModalidade[torneio.modalidade] -= (torneio.pontosEmpate || 0);
-                }
+                if(jogo.placarA > jogo.placarB) { if(timeA) timeA.pontosModalidade[torneio.modalidade] -= torneio.pontosVitoria; }
+                else if(jogo.placarB > jogo.placarA) { if(timeB) timeB.pontosModalidade[torneio.modalidade] -= torneio.pontosVitoria; }
+                else { if(timeA) timeA.pontosModalidade[torneio.modalidade] -= torneio.pontosEmpate; if(timeB) timeB.pontosModalidade[torneio.modalidade] -= torneio.pontosEmpate; }
             }
+            jogo.placarA = parseInt(valA); jogo.placarB = parseInt(valB); jogo.realizado = true;
 
-            jogo.placarA = golsA;
-            jogo.placarB = golsB;
-            jogo.realizado = true;
-
-            if(golsA > golsB) {
-                if(timeA) {
-                    if(!timeA.pontosModalidade) timeA.pontosModalidade = {};
-                    timeA.pontosModalidade[torneio.modalidade] = (timeA.pontosModalidade[torneio.modalidade] || 0) + torneio.pontosVitoria;
-                }
-            } else if(golsB > golsA) {
-                if(timeB) {
-                    if(!timeB.pontosModalidade) timeB.pontosModalidade = {};
-                    timeB.pontosModalidade[torneio.modalidade] = (timeB.pontosModalidade[torneio.modalidade] || 0) + torneio.pontosVitoria;
-                }
-            } else {
-                let ptsEmpate = torneio.pontosEmpate || 0;
-                if(timeA) {
-                    if(!timeA.pontosModalidade) timeA.pontosModalidade = {};
-                    timeA.pontosModalidade[torneio.modalidade] = (timeA.pontosModalidade[torneio.modalidade] || 0) + ptsEmpate;
-                }
-                if(timeB) {
-                    if(!timeB.pontosModalidade) timeB.pontosModalidade = {};
-                    timeB.pontosModalidade[torneio.modalidade] = (timeB.pontosModalidade[torneio.modalidade] || 0) + ptsEmpate;
-                }
-            }
-
-            salvarNoServidor();
-            alert("Placar computado e ranking atualizado!");
-        };
-
-        window.editarNomeTime = function(i) { const n = prompt("Novo nome do time:", banco.times[i].nome); if(n) { banco.times[i].nome = n.trim(); salvarNoServidor(); } };
-        window.excluirTime = function(i) { if(confirm("Excluir time?")) { banco.times.splice(i,1); salvarNoServidor(); } };
-        
-        window.editarTorneioCompleto = function(i) {
-            if(sessionStorage.getItem('admin_autenticado') !== 'true') { alert("Acesso restrito!"); return; }
-            let torneio = banco.torneios[i];
-            
-            if (!torneio.timesParticipantes) {
-                torneio.timesParticipantes = banco.times.filter(t => t.modalidades && t.modalidades.includes(torneio.modalidade)).map(t => t.nome);
-            }
-
-            let msgMenu = `Configurações do Torneio: "${torneio.nome}"\n\n` +
-                          `Participantes atuais: ${torneio.timesParticipantes.join(', ')}\n\n` +
-                          `Escolha o que deseja fazer:\n` +
-                          `1 - Mudar Nome do Torneio\n` +
-                          `2 - Mudar Pontos por Vitória (Atual: ${torneio.pontosVitoria})\n` +
-                          `3 - Adicionar Time Participante\n` +
-                          `4 - Remover Time Participante`;
-            
-            let opcao = prompt(msgMenu);
-
-            if (opcao === "1") {
-                let novoNome = prompt("Digite o novo nome do Torneio:", torneio.nome);
-                if (novoNome) torneio.nome = novoNome.trim();
-            } 
-            else if (opcao === "2") {
-                let novosPts = prompt("Novos pontos por vitória:", torneio.pontosVitoria);
-                if (novosPts && !isNaN(novosPts)) torneio.pontosVitoria = parseInt(novosPts);
-            } 
-            else if (opcao === "3") {
-                let novoTime = prompt("Digite o nome exato do time para ADICIONAR:");
-                if (novoTime) {
-                    novoTime = novoTime.trim();
-                    let existeNoBanco = banco.times.some(t => t.nome.toLowerCase() === $.toLowerCase()); // Fallback safe
-                    let realTime = banco.times.find(t => t.nome.toLowerCase() === novoTime.toLowerCase());
-                    if (!realTime) { alert("Erro: Esse time não está cadastrado no sistema!"); return; }
-                    if (torneio.timesParticipantes.map(t => t.toLowerCase()).includes(novoTime.toLowerCase())) { alert("Esse time já está participando deste torneio!"); return; }
-                    
-                    torneio.timesParticipantes.push(realTime.nome);
-                    if(!torneio.confrontos) torneio.confrontos = [];
-                    torneio.timesParticipantes.forEach(outroTime => {
-                        if (outroTime !== realTime.nome) {
-                            torneio.confrontos.push({ timeA: outroTime, timeB: realTime.nome, placarA: null, placarB: null, realizado: false });
-                        }
-                    });
-                    alert(`Time "${realTime.nome}" adicionado!`);
-                }
-            } 
-            else if (opcao === "4") {
-                let timeRemover = prompt(`Digite o nome do time que deseja REMOVER:\nOpções: ${torneio.timesParticipantes.join(', ')}`);
-                if (timeRemover) {
-                    timeRemover = timeRemover.trim();
-                    let indexTime = torneio.timesParticipantes.findIndex(t => t.toLowerCase() === timeRemover.toLowerCase());
-                    if (indexTime === -1) { alert("Time não encontrado!"); return; }
-
-                    let nomeRealDoTime = torneio.timesParticipantes[indexTime];
-                    torneio.timesParticipantes.splice(indexTime, 1);
-                    if(torneio.confrontos) {
-                        torneio.confrontos = torneio.confrontos.filter(jogo => 
-                            jogo.timeA.toLowerCase() !== timeRemover.toLowerCase() && 
-                            jogo.timeB.toLowerCase() !== timeRemover.toLowerCase()
-                        );
-                    }
-                    alert(`Time "${nomeRealDoTime}" foi removido.`);
-                }
-            }
+            if(jogo.placarA > jogo.placarB) { if(timeA) timeA.pontosModalidade[torneio.modalidade] = (timeA.pontosModalidade[torneio.modalidade]||0) + torneio.pontosVitoria; }
+            else if(jogo.placarB > jogo.placarA) { if(timeB) timeB.pontosModalidade[torneio.modalidade] = (timeB.pontosModalidade[torneio.modalidade]||0) + torneio.pontosVitoria; }
+            else { if(timeA) timeA.pontosModalidade[torneio.modalidade] = (timeA.pontosModalidade[torneio.modalidade]||0) + torneio.pontosEmpate; if(timeB) timeB.pontosModalidade[torneio.modalidade] = (timeB.pontosModalidade[torneio.modalidade]||0) + torneio.pontosEmpate; }
             salvarNoServidor();
         };
 
-        window.excluirTorneio = function(i) { if(confirm("Excluir campeonato?")) { banco.torneios.splice(i,1); salvarNoServidor(); } };
+        window.excluirTime = function(i) { banco.times.splice(i,1); salvarNoServidor(); };
+        window.excluirTorneio = function(i) { banco.torneios.splice(i,1); salvarNoServidor(); };
 
         function atualizarInterface() {
             const selTime = document.getElementById('select-modalidades-time');
             const selTorneio = document.getElementById('select-modalidade-torneio');
             const selAtivo = document.getElementById('select-torneio-ativo');
-            const ativoAtual = selAtivo.value;
+            if(!selTime) return;
 
+            const ativoAtual = selAtivo.value;
             selTime.innerHTML = ''; selTorneio.innerHTML = '<option value="">Selecione...</option>';
             selAtivo.innerHTML = '<option value="">Selecione um Campeonato...</option>';
 
@@ -666,21 +748,19 @@
                 selTime.innerHTML += `<option value="${m}">${m}</option>`;
                 selTorneio.innerHTML += `<option value="${m}">${m}</option>`;
             });
-
             banco.torneios.forEach((t, index) => {
                 selAtivo.innerHTML += `<option value="${index}">${t.nome} (${t.modalidade})</option>`;
             });
-            if(ativoAtual !== "" && ativoAtual < banco.torneios.length) selAtivo.value = ativoAtual;
+            if(ativoAtual !== "") selAtivo.value = ativoAtual;
 
             const lTimes = document.getElementById('lista-edit-times'); lTimes.innerHTML = '';
             banco.times.forEach((t, i) => {
-                lTimes.innerHTML += `<li><div class="info-time"><strong>${t.nome}</strong><small>${t.modalidades ? t.modalidades.join(', ') : ''}</small></div><div><button class="btn-small btn-edit" onclick="editarNomeTime(${i})">Nome</button><button class="btn-small btn-delete" onclick="excluirTime(${i})">X</button></div></li>`;
+                lTimes.innerHTML += `<li><strong>${t.nome}</strong><button class="btn-small btn-delete" onclick="excluirTime(${i})">X</button></li>`;
             });
 
             const lTorn = document.getElementById('lista-edit-torneios'); lTorn.innerHTML = '';
             banco.torneios.forEach((t, i) => {
-                let listagemParticipantes = t.timesParticipantes ? t.timesParticipantes.length : 0;
-                lTorn.innerHTML += `<li><div class="info-time"><strong>${t.nome}</strong><small>Vitória: +${t.pontosVitoria}pts | ${listagemParticipantes} times</small></div><div><button class="btn-small btn-edit" onclick="editarTorneioCompleto(${i})">Editar</button><button class="btn-small btn-delete" onclick="excluirTorneio(${i})">X</button></div></li>`;
+                lTorn.innerHTML += `<li><strong>${t.nome}</strong><button class="btn-small btn-delete" onclick="excluirTorneio(${i})">X</button></li>`;
             });
 
             renderizarRankingGeral();
@@ -691,90 +771,46 @@
             const idx = document.getElementById('select-torneio-ativo').value;
             const tBody = document.getElementById('tabela-torneio-classificacao');
             const cContainer = document.getElementById('container-confrontos');
-            tBody.innerHTML = ''; cContainer.innerHTML = '';
+            if(!tBody) return; tBody.innerHTML = ''; cContainer.innerHTML = '';
 
-            if(idx === "" || !banco.torneios[idx]) { cContainer.innerHTML = "Selecione um campeonato acima."; return; }
-
+            if(idx === "" || !banco.torneios[idx]) return;
             let torneio = banco.torneios[idx];
             const isAdmin = sessionStorage.getItem('admin_autenticado') === 'true';
 
-            let escopoTimes = torneio.timesParticipantes || [];
-            let dadosTimesFiltrados = banco.times.filter(t => escopoTimes.includes(t.nome));
+            let dadosTimesFiltrados = banco.times.filter(t => torneio.timesParticipantes.includes(t.nome));
+            dadosTimesFiltrados.sort((a,b) => (b.pontosModalidade[torneio.modalidade]||0) - (a.pontosModalidade[torneio.modalidade]||0));
 
-            dadosTimesFiltrados.sort((a,b) => {
-                let ptsA = a.pontosModalidade ? (a.pontosModalidade[torneio.modalidade] || 0) : 0;
-                let ptsB = b.pontosModalidade ? (b.pontosModalidade[torneio.modalidade] || 0) : 0;
-                return ptsB - ptsA;
-            });
-            
             dadosTimesFiltrados.forEach((t, i) => {
-                let pts = t.pontosModalidade ? (t.pontosModalidade[torneio.modalidade] || 0) : 0;
-                tBody.innerHTML += `
-                    <tr>
-                        <td>${i+1}º</td>
-                        <td><strong>${t.nome}</strong></td>
-                        <td>${pts} pts</td>
-                        <td>
-                            ${isAdmin ? `<button class="btn-small btn-edit" onclick="editarPontoManualTorneio('${t.nome}', '${torneio.modalidade}')">Ajustar Pts</button>` : '---'}
-                        </td>
-                    </tr>`;
+                tBody.innerHTML += `<tr><td>${i+1}º</td><td>${t.nome}</td><td>${t.pontosModalidade[torneio.modalidade]||0} pts</td><td>---</td></tr>`;
             });
-
-            if(!torneio.confrontos || torneio.confrontos.length === 0) { cContainer.innerHTML = "Nenhum confronto gerado."; return; }
 
             torneio.confrontos.forEach((jogo, cIdx) => {
-                const pA = jogo.placarA !== null ? jogo.placarA : '';
-                const pB = jogo.placarB !== null ? jogo.placarB : '';
-
                 cContainer.innerHTML += `
                     <div class="confronto-item">
-                        <div style="flex:1;">
-                            <strong>${jogo.timeA}</strong> VS <strong>${jogo.timeB}</strong>
-                            <div style="font-size:0.8rem; color:#666; margin-top:4px;">
-                                Status: ${jogo.realizado ? '<span style="color:var(--verde-pe)">Encerrado ✅</span>' : 'Aguardando jogo'}
-                            </div>
-                        </div>
+                        <span>${jogo.timeA} x ${jogo.timeB}</span>
                         <div class="placar-inputs">
-                            <input type="number" id="placarA-${idx}-${cIdx}" value="${pA}" min="0" ${!isAdmin ? 'disabled' : ''}>
-                            <span>x</span>
-                            <input type="number" id="placarB-${idx}-${cIdx}" value="${pB}" min="0" ${!isAdmin ? 'disabled' : ''}>
-                            ${isAdmin ? `<button class="btn-small btn-score" onclick="salvarPlacarJogo(${idx}, ${cIdx})">✔</button>` : ''}
+                            <input type="number" id="placarA-${idx}-${cIdx}" value="${jogo.placarA!==null?jogo.placarA:''}" ${!isAdmin?'disabled':''}>
+                            <input type="number" id="placarB-${idx}-${cIdx}" value="${jogo.placarB!==null?jogo.placarB:''}" ${!isAdmin?'disabled':''}>
+                            ${isAdmin?`<button class="btn-small btn-score" onclick="salvarPlacarJogo(${idx},${cIdx})">✔</button>`:''}
                         </div>
                     </div>`;
             });
         }
 
         function renderizarRankingGeral() {
-            const tGeral = document.getElementById('tabela-geral'); tGeral.innerHTML = '';
-            const isAdmin = sessionStorage.getItem('admin_autenticado') === 'true';
-
-            let ordenados = banco.times.map((t, indexOriginal) => {
-                let soma = 0;
-                if(t.pontosModalidade) {
-                    Object.values(t.pontosModalidade).forEach(p => soma += p);
-                }
-                let bonusPena = t.pontosManuaisGerais || 0;
-                return { ...t, indexOriginal, somaTotal: (soma + bonusPena) };
+            const tGeral = document.getElementById('tabela-geral'); if(!tGeral) return; tGeral.innerHTML = '';
+            let ordenados = banco.times.map((t) => {
+                let soma = 0; if(t.pontosModalidade) Object.values(t.pontosModalidade).forEach(p => soma += p);
+                return { ...t, somaTotal: soma };
             }).sort((a,b) => b.somaTotal - a.somaTotal);
 
             ordenados.forEach((t, i) => {
-                let textAjuste = t.pontosManuaisGerais && t.pontosManuaisGerais !== 0 ? ` (${t.pontosManuaisGerais > 0 ? '+' : ''}${t.pontosManuaisGerais} modificado)` : '';
-                tGeral.innerHTML += `
-                    <tr>
-                        <td>${i+1}º</td>
-                        <td><strong>${t.nome}</strong></td>
-                        <td>${t.modalidades ? t.modalidades.join(', ') : ''}</td>
-                        <td><strong>${t.somaTotal} pts</strong><small style="color:#666">${textAjuste}</small></td>
-                        <td>
-                            ${isAdmin ? `<button class="btn-small btn-edit" onclick="editarPontoManualGeral(${t.indexOriginal})">Ajustar Geral</button>` : '---'}
-                        </td>
-                    </tr>`;
+                tGeral.innerHTML += `<tr><td>${i+1}º</td><td>${t.nome}</td><td>${t.modalidades?t.modalidades.join(', '):''}</td><td>${t.somaTotal} pts</td><td>---</td></tr>`;
             });
         }
 
         verificarStatusLogin();
         carregarDadosDoServidor();
     </script>
-    
 </body>
 </html>
