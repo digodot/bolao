@@ -223,6 +223,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 
@@ -241,11 +242,11 @@
         <div id="card-login" class="card login-box">
             <h2>🔑 Acesso Restrito (Admin)</h2>
             <form id="form-login">
-                <label>Usuário:</label>
-                <input type="text" id="login-usuario" placeholder="Digite o usuário" required>
+                <label>E-mail do Administrador:</label>
+                <input type="email" id="login-usuario" placeholder="seu-email@provedor.com" required>
                 <label>Senha:</label>
-                <input type="password" id="login-senha" placeholder="Letras e números" required>
-                <button type="submit">Entrar no Panel</button>
+                <input type="password" id="login-senha" placeholder="Digite sua senha cadastrada" required>
+                <button type="submit">Entrar no Painel</button>
             </form>
         </div>
 
@@ -399,13 +400,13 @@
     </footer>
 
     <script>
-        // CONFIGURAÇÃO DO FIREBASE
+        // CONFIGURAÇÃO REAL DO FIREBASE SUBLINHADA PELO USUÁRIO
         const firebaseConfig = {
             apiKey: "AIzaSyDIij-LI7JRAYl8KrqFR_xLsFjGQoHaYu0",
             authDomain: "sindicato-73573.firebaseapp.com",
             projectId: "sindicato-73573",
             storageBucket: "sindicato-73573.firebasestorage.app",
-            messagingSenderId: "957508942732",
+            messagingSenderId: "957508942723",
             appId: "1:957508942723:web:25fd03f138c4b6d0c254b6"
         };
 
@@ -413,8 +414,6 @@
         const db = firebase.firestore();
 
         let banco = { modalidades: [], times: [], torneios: [], jogosCopa: [], palpitesCopa: [], rankingBolao: [] };
-        const ADMIN_USER = "digodot";
-        const ADMIN_PASS = "pe2026rec";
 
         function alternarAba(aba) {
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
@@ -433,23 +432,44 @@
             }
         }
 
+        // LÓGICA DE LOGIN COM AUTENTICAÇÃO SEGURA DO FIREBASE (NÃO DEIXA SENHA NO CÓDIGO)
         document.getElementById('form-login').addEventListener('submit', (e) => {
             e.preventDefault();
-            if (document.getElementById('login-usuario').value.trim() === ADMIN_USER && document.getElementById('login-senha').value === ADMIN_PASS) {
-                sessionStorage.setItem('admin_autenticado', 'true');
-                verificarStatusLogin();
-                document.getElementById('form-login').reset();
-            } else { alert("Usuário ou Senha incorretos!"); }
+            const email = document.getElementById('login-usuario').value.trim();
+            const senha = document.getElementById('login-senha').value;
+
+            firebase.auth().signInWithEmailAndPassword(email, senha)
+            .then(() => {
+                alert("Painel Admin autenticado com sucesso!");
+            })
+            .catch((error) => {
+                alert("Erro: E-mail ou senha de administrador incorretos!");
+                console.error(error.message);
+            });
         });
 
-        function verificarStatusLogin() {
-            const logado = sessionStorage.getItem('admin_autenticado') === 'true';
-            document.getElementById('card-login').style.display = logado ? 'none' : 'block';
-            document.querySelectorAll('.private-area').forEach(p => p.style.display = logado ? 'block' : 'none');
-            document.getElementById('aba-cadastro').style.gridTemplateColumns = logado ? '1fr 1fr' : '1fr';
-        }
+        // MONITOR REAL DE SESSÃO DO FIREBASE (BLINDADO)
+        firebase.auth().onAuthStateChanged((user) => {
+            const loginCard = document.getElementById('card-login');
+            const paineisPrivados = document.querySelectorAll('.private-area');
+            const abaCadastro = document.getElementById('aba-cadastro');
+            
+            if (user) {
+                loginCard.style.display = 'none';
+                paineisPrivados.forEach(p => p.style.display = 'block');
+                abaCadastro.style.gridTemplateColumns = '1fr 1fr';
+            } else {
+                loginCard.style.display = 'block';
+                paineisPrivados.forEach(p => p.style.display = 'none');
+                abaCadastro.style.gridTemplateColumns = '1fr';
+            }
+        });
 
-        function fazerLogout() { sessionStorage.removeItem('admin_autenticado'); verificarStatusLogin(); }
+        window.fazerLogout = function() {
+            firebase.auth().signOut().then(() => {
+                alert("Sessão Admin encerrada.");
+            });
+        };
 
         function carregarDadosDoServidor() {
             db.collection('campeonatos').doc('dados').onSnapshot((doc) => {
@@ -472,10 +492,15 @@
         }
 
         function salvarNoServidor() {
-            db.collection('campeonatos').doc('dados').set(banco).catch(err => console.error(err));
+            // Só executa se houver um usuário logado no Firebase Auth
+            if(firebase.auth().currentUser) {
+                db.collection('campeonatos').doc('dados').set(banco).catch(err => console.error(err));
+            } else {
+                alert("Erro: Você precisa estar logado para gravar alterações!");
+            }
         }
 
-        // CADASTROS EXTRAÍDOS
+        // CADASTROS EXECUTADOS
         document.getElementById('form-modalidade').addEventListener('submit', (e) => {
             e.preventDefault();
             const nome = document.getElementById('nome-modalidade').value.trim();
@@ -540,7 +565,6 @@
             });
         }
 
-        window.resultadoRealCopa = function(idx) { salvarResultadoRealCopa(idx); };
         window.salvarResultadoRealCopa = function(idx) {
             const gB = document.getElementById(`adm-gols-b-${idx}`).value;
             const gA = document.getElementById(`adm-gols-a-${idx}`).value;
@@ -558,13 +582,11 @@
             const listaEdicao = document.getElementById('admin-lista-edicao-palpites');
             if(!selectTimes) return;
 
-            // Alimenta Select de Times (Apostadores Cadastrados)
             selectTimes.innerHTML = '<option value="">Selecione o participante...</option>';
             banco.times.forEach(t => {
                 selectTimes.innerHTML += `<option value="${t.nome}">${t.nome}</option>`;
             });
 
-            // Alimenta Select de Jogos
             selectJogos.innerHTML = '<option value="">Selecione o jogo...</option>';
             if(banco.jogosCopa) {
                 banco.jogosCopa.forEach(j => {
@@ -577,7 +599,6 @@
                 document.getElementById('label-oponente-admin').innerText = jogo ? jogo.adversario : 'Adversário';
             };
 
-            // Lista para Editar/Excluir palpites lidos
             listaEdicao.innerHTML = '';
             if(!banco.palpitesCopa || banco.palpitesCopa.length === 0) {
                 listaEdicao.innerHTML = '<li><small>Nenhum palpite registrado.</small></li>';
@@ -605,13 +626,12 @@
             const golsA = parseInt(document.getElementById('adm-palpite-adve').value);
 
             if(!banco.palpitesCopa) banco.palpitesCopa = [];
-            // Filtra duplicados antigos
             banco.palpitesCopa = banco.palpitesCopa.filter(p => !(p.nome === nome && p.jogoId === jogoId));
 
             banco.palpitesCopa.push({ nome, jogoId, golsBrasil: golsB, golsAdversario: golsA });
             salvarNoServidor();
             document.getElementById('form-palpite-admin').reset();
-            alert('Palpite computado!');
+            alert('Palpite gravado!');
         });
 
         window.editarPalpiteAdmin = function(idx) {
@@ -634,15 +654,13 @@
             }
         };
 
-        // INTERFACE DO BOLÃO PÚBLICO
-        function renderizacaoBolaoPublico() { renderizarAbasBolaoPublico(); }
+        // INTERFACE PÚBLICA DO BOLÃO
         function renderizarAbasBolaoPublico() {
             const listaPublica = document.getElementById('lista-publica-jogos-copa');
             const tabelaRanking = document.getElementById('tabela-ranking-bolao');
             const tabelaMural = document.getElementById('tabela-publica-todos-palpites');
             if(!listaPublica) return;
 
-            // Histórico oficial
             listaPublica.innerHTML = '';
             if(banco.jogosCopa) {
                 banco.jogosCopa.forEach(j => {
@@ -650,20 +668,18 @@
                 });
             }
 
-            // Ranking
             tabelaRanking.innerHTML = '';
             if(!banco.rankingBolao || banco.rankingBolao.length === 0) {
-                tabelaRanking.innerHTML = '<tr><td colspan="3">Aguardando cálculo.</td></tr>';
+                tabelaRanking.innerHTML = '<tr><td colspan="3">Aguardando cálculo do admin.</td></tr>';
             } else {
                 banco.rankingBolao.forEach((usr, i) => {
                     tabelaRanking.innerHTML += `<tr><td>${i+1}º</td><td><strong>${usr.nome}</strong></td><td>${usr.pontos} pts</td></tr>`;
                 });
             }
 
-            // Mural de Palpites
             tabelaMural.innerHTML = '';
             if(!banco.palpitesCopa || banco.palpitesCopa.length === 0) {
-                tabelaMural.innerHTML = '<tr><td colspan="3">Nenhum palpite aberto.</td></tr>';
+                tabelaMural.innerHTML = '<tr><td colspan="3">Nenhum palpite computado.</td></tr>';
             } else {
                 banco.palpitesCopa.forEach(p => {
                     const jogo = banco.jogosCopa.find(j => j.id === p.jogoId);
@@ -672,7 +688,7 @@
             }
         }
 
-        // MOTOR DE CÁLCULO
+        // CÁLCULO DE PONTUAÇÃO DO BOLÃO
         window.calcularPontuacaoBolao = function() {
             if(!banco.palpitesCopa) return;
             let pontuacaoPontos = {};
@@ -697,10 +713,10 @@
             }).sort((a,b) => b.pontos - a.pontos);
 
             salvarNoServidor();
-            alert('Ranking atualizado!');
+            alert('Ranking do bolão atualizado com sucesso!');
         };
 
-        // CÓDIGO DO SISTEMA ORIGINAL (MANTIDO E ADAPTADO)
+        // LÓGICA DO SISTEMA DE CAMPEONATOS ORIGINAL
         window.atualizarCheckboxTimesPorModalidade = function() {
             const modSelecionada = document.getElementById('select-modalidade-torneio').value;
             const container = document.getElementById('lista-checkbox-times'); container.innerHTML = '';
@@ -775,7 +791,7 @@
 
             if(idx === "" || !banco.torneios[idx]) return;
             let torneio = banco.torneios[idx];
-            const isAdmin = sessionStorage.getItem('admin_autenticado') === 'true';
+            const isAdmin = firebase.auth().currentUser !== null;
 
             let dadosTimesFiltrados = banco.times.filter(t => torneio.timesParticipantes.includes(t.nome));
             dadosTimesFiltrados.sort((a,b) => (b.pontosModalidade[torneio.modalidade]||0) - (a.pontosModalidade[torneio.modalidade]||0));
@@ -809,7 +825,6 @@
             });
         }
 
-        verificarStatusLogin();
         carregarDadosDoServidor();
     </script>
 </body>
