@@ -689,7 +689,7 @@
         }
 
         // CÁLCULO DE PONTUAÇÃO DO BOLÃO
-       window.calcularPontuacaoBolao = function() {
+        window.calcularPontuacaoBolao = function() {
             if(!banco.palpitesCopa) return;
             let pontuacaoPontos = {};
             banco.times.forEach(t => { pontuacaoPontos[t.nome] = 0; });
@@ -697,67 +697,23 @@
             banco.palpitesCopa.forEach(palpite => {
                 const jogoReal = banco.jogosCopa.find(j => j.id === palpite.jogoId);
                 if(jogoReal && jogoReal.realizado && pontuacaoPontos[palpite.nome] !== undefined) {
-                    
-                    // Força a conversão de todos os valores para números inteiros, evitando bugs de texto (String)
-                    const realBrasil = parseInt(jogoReal.placarBrasil, 10);
-                    const realAdversario = parseInt(jogoReal.placarAdversario, 10);
-                    const palpiteBrasil = parseInt(palpite.golsBrasil, 10);
-                    const palpiteAdversario = parseInt(palpite.golsAdversario, 10);
+                    const resReal = Math.sign(jogoReal.placarBrasil - jogoReal.placarAdversario);
+                    const resPalpite = Math.sign(palpite.golsBrasil - palpite.golsAdversario);
 
-                    const resReal = Math.sign(realBrasil - realAdversario);
-                    const resPalpite = Math.sign(palpiteBrasil - palpiteAdversario);
-
-                    let pontosDoJogo = 0;
-                    const acertouVencedor = resReal === resPalpite;
-                    const acertouGolsBrasil = realBrasil === palpiteBrasil;
-                    const acertouGolsAdversario = realAdversario === palpiteAdversario;
-
-                    // 1. Acertou quem ganha ou se dá empate: +20 pontos
-                    if (acertouVencedor) {
-                        pontosDoJogo += 20;
+                    if(jogoReal.placarBrasil === palpite.golsBrasil && jogoReal.placarAdversario === palpite.golsAdversario) {
+                        pontuacaoPontos[palpite.nome] += 25;
+                    } else if(resReal === resPalpite) {
+                        pontuacaoPontos[palpite.nome] += 10;
                     }
-
-                    // 2. Acertou a quantidade exata de gols do Brasil: +15 pontos
-                    if (acertouGolsBrasil) {
-                        pontosDoJogo += 15;
-                    }
-
-                    // 3. Acertou a quantidade exata de gols do adversário: +15 pontos
-                    if (acertouGolsAdversario) {
-                        pontosDoJogo += 15;
-                    }
-
-                    // 4. BÔNUS EXTRA: Se gabaritou tudo (Placar em cheio), ganha mais 25 pontos (Total 75)
-                    if (acertouVencedor && acertouGolsBrasil && acertouGolsAdversario) {
-                        pontosDoJogo += 25;
-                    }
-
-                    // Acumula os pontos do jogo no saldo total do apostador
-                    pontuacaoPontos[palpite.nome] += pontosDoJogo;
                 }
             });
 
-            // Atualiza e ordena o ranking do maior para o menor pontuador
             banco.rankingBolao = Object.keys(pontuacaoPontos).map(nome => {
                 return { nome: nome, pontos: pontuacaoPontos[nome] };
             }).sort((a,b) => b.pontos - a.pontos);
 
             salvarNoServidor();
-            alert('Ranking do bolão recalculado com sucesso no Modo Acumulativo!');
-        };
-
-                    // Acumula os pontos do jogo no saldo total do apostador
-                    pontuacaoPontos[palpite.nome] += pontosDoJogo;
-                }
-            });
-
-            // Atualiza e ordena o ranking do maior para o menor pontuador
-            banco.rankingBolao = Object.keys(pontuacaoPontos).map(nome => {
-                return { nome: nome, pontos: pontuacaoPontos[nome] };
-            }).sort((a,b) => b.pontos - a.pontos);
-
-            salvarNoServidor();
-            alert('Ranking do bolão recalculado com sucesso no Modo Acumulativo (Máximo 75 pontos por jogo)!');
+            alert('Ranking do bolão atualizado com sucesso!');
         };
 
         // LÓGICA DO SISTEMA DE CAMPEONATOS ORIGINAL
