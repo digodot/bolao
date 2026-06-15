@@ -698,13 +698,19 @@
                 const jogoReal = banco.jogosCopa.find(j => j.id === palpite.jogoId);
                 if(jogoReal && jogoReal.realizado && pontuacaoPontos[palpite.nome] !== undefined) {
                     
-                    const resReal = Math.sign(jogoReal.placarBrasil - jogoReal.placarAdversario);
-                    const resPalpite = Math.sign(palpite.golsBrasil - palpite.golsAdversario);
+                    // Força a conversão de todos os valores para números inteiros, evitando bugs de texto (String)
+                    const realBrasil = parseInt(jogoReal.placarBrasil, 10);
+                    const realAdversario = parseInt(jogoReal.placarAdversario, 10);
+                    const palpiteBrasil = parseInt(palpite.golsBrasil, 10);
+                    const palpiteAdversario = parseInt(palpite.golsAdversario, 10);
+
+                    const resReal = Math.sign(realBrasil - realAdversario);
+                    const resPalpite = Math.sign(palpiteBrasil - palpiteAdversario);
 
                     let pontosDoJogo = 0;
                     const acertouVencedor = resReal === resPalpite;
-                    const acertouGolsBrasil = jogoReal.placarBrasil === palpite.golsBrasil;
-                    const acertouGolsAdversario = jogoReal.placarAdversario === palpite.golsAdversario;
+                    const acertouGolsBrasil = realBrasil === palpiteBrasil;
+                    const acertouGolsAdversario = realAdversario === palpiteAdversario;
 
                     // 1. Acertou quem ganha ou se dá empate: +20 pontos
                     if (acertouVencedor) {
@@ -725,6 +731,20 @@
                     if (acertouVencedor && acertouGolsBrasil && acertouGolsAdversario) {
                         pontosDoJogo += 25;
                     }
+
+                    // Acumula os pontos do jogo no saldo total do apostador
+                    pontuacaoPontos[palpite.nome] += pontosDoJogo;
+                }
+            });
+
+            // Atualiza e ordena o ranking do maior para o menor pontuador
+            banco.rankingBolao = Object.keys(pontuacaoPontos).map(nome => {
+                return { nome: nome, pontos: pontuacaoPontos[nome] };
+            }).sort((a,b) => b.pontos - a.pontos);
+
+            salvarNoServidor();
+            alert('Ranking do bolão recalculado com sucesso no Modo Acumulativo!');
+        };
 
                     // Acumula os pontos do jogo no saldo total do apostador
                     pontuacaoPontos[palpite.nome] += pontosDoJogo;
