@@ -688,32 +688,74 @@
             }
         }
 
-        // CÁLCULO DE PONTUAÇÃO DO BOLÃO
+        // MOTOR DE CÁLCULO DE PONTUAÇÃO DO BOLÃO (SISTEMA ACUMULATIVO RETROATIVO TOTAL CORRIGIDO)
+        // MOTOR DE CÁLCULO DE PONTUAÇÃO DO BOLÃO (CORREÇÃO DE SOMA GERAL DO RANKING)
+       // MOTOR DE CÁLCULO DE PONTUAÇÃO DO BOLÃO (SISTEMA DINÂMICO ANTI-ERRO)
+// MOTOR DE CÁLCULO DE PONTUAÇÃO DO BOLÃO (SISTEMA ACUMULATIVO RETROATIVO TOTAL CORRIGIDO)
         window.calcularPontuacaoBolao = function() {
-            if(!banco.palpitesCopa) return;
+            if(!banco.palpitesCopa || !banco.times) {
+                alert('Aguardando carregamento dos dados do servidor. Tente novamente em instantes!');
+                return;
+            }
+            
+            // 1. Sempre começa zerando a pontuação da rodada para recalcular todo o histórico do zero
             let pontuacaoPontos = {};
-            banco.times.forEach(t => { pontuacaoPontos[t.nome] = 0; });
+            banco.times.forEach(t => { 
+                if (t.nome) { pontuacaoPontos[t.nome] = 0; }
+            });
 
+            // 2. Passa por absolutamente todos os palpites salvos no histórico
             banco.palpitesCopa.forEach(palpite => {
-                const jogoReal = banco.jogosCopa.find(j => j.id === palpite.jogoId);
+                const jogoReal = banco.jogosCopa ? banco.jogosCopa.find(j => j.id === palpite.jogoId) : null;
+                
+                // Só calcula se o jogo de fato já foi realizado e o apostador existe no sistema
                 if(jogoReal && jogoReal.realizado && pontuacaoPontos[palpite.nome] !== undefined) {
-                    const resReal = Math.sign(jogoReal.placarBrasil - jogoReal.placarAdversario);
-                    const resPalpite = Math.sign(palpite.golsBrasil - palpite.golsAdversario);
+                    
+                    const realBrasil = parseInt(jogoReal.placarBrasil, 10);
+                    const realAdversario = parseInt(jogoReal.placarAdversario, 10);
+                    const palpiteBrasil = parseInt(palpite.golsBrasil, 10);
+                    const palpiteAdversario = parseInt(palpite.golsAdversario, 10);
 
-                    if(jogoReal.placarBrasil === palpite.golsBrasil && jogoReal.placarAdversario === palpite.golsAdversario) {
-                        pontuacaoPontos[palpite.nome] += 25;
-                    } else if(resReal === resPalpite) {
-                        pontuacaoPontos[palpite.nome] += 10;
+                    const resReal = Math.sign(realBrasil - realAdversario);
+                    const resPalpite = Math.sign(palpiteBrasil - palpiteAdversario);
+
+                    let pontosDoJogo = 0;
+                    const acertouVencedor = resReal === resPalpite;
+                    const acertouGolsBrasil = realBrasil === palpiteBrasil;
+                    const acertouGolsAdversario = realAdversario === palpiteAdversario;
+
+                    // Regra 1: Acertou Vencedor ou Empate (+20 pts)
+                    if (acertouVencedor) {
+                        pontosDoJogo += 20;
                     }
+
+                    // Regra 2: Acertou quantidade de gols do Brasil (+15 pts)
+                    if (acertouGolsBrasil) {
+                        pontosDoJogo += 15;
+                    }
+
+                    // Regra 3: Acertou quantidade de gols do Adversário (+15 pts)
+                    if (acertouGolsAdversario) {
+                        pontosDoJogo += 15;
+                    }
+
+                    // Regra 4: Bônus de gabaritar o placar em cheio (+25 pts)
+                    if (acertouVencedor && acertouGolsBrasil && acertouGolsAdversario) {
+                        pontosDoJogo += 25;
+                    }
+
+                    // Soma os pontos deste palpite ao total acumulado do apostador
+                    pontuacaoPontos[palpite.nome] += pontosDoJogo;
                 }
             });
 
+            // 3. Monta o ranking lendo os saldos zerados e totalmente recalculados
             banco.rankingBolao = Object.keys(pontuacaoPontos).map(nome => {
-                return { nome: nome, pontos: pontuacaoPontos[nome] };
+                return { nome: nome, pontos: parseInt(pontuacaoPontos[nome], 10) };
             }).sort((a,b) => b.pontos - a.pontos);
 
             salvarNoServidor();
-            alert('Ranking do bolão atualizado com sucesso!');
+            alert('Ranking geral recalculado com sucesso! Todas as rodadas e jogos ativos foram somados acumulativamente.');
         };
 
         // LÓGICA DO SISTEMA DE CAMPEONATOS ORIGINAL
